@@ -25,7 +25,7 @@ const createGrid = (width = WIDTH, height = HEIGHT, nodeSize = NODE_SIZE) =>
     )
     .reduce((p, c) => [...p, ...c]);
 
-function digitaldifferentialanalyzer(x0, y0, x1, y1) {
+function ddaAsPoint(x0, y0, x1, y1) {
   const dx = x1 - x0,
     dy = y1 - y0,
     s = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy),
@@ -42,6 +42,28 @@ function digitaldifferentialanalyzer(x0, y0, x1, y1) {
     x += xi;
     y += yi;
     out.push({ x: x, y: y });
+  }
+
+  return out;
+}
+
+function ddaAsNode(x0, y0, x1, y1) {
+  const dx = x1 - x0,
+    dy = y1 - y0,
+    s = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy),
+    xi = (dx * 1.0) / s,
+    yi = (dy * 1.0) / s;
+
+  var x = x0,
+    y = y0,
+    out = [];
+
+  out.push({ col: x0, row: y0 });
+
+  for (var i = 0; i < s; i++) {
+    x += xi;
+    y += yi;
+    out.push({ col: x, row: y });
   }
 
   return out;
@@ -78,28 +100,34 @@ const App = () => {
   });
 
   useEffect(() => {
-    const hit = mousePositions
-      .map(e => ({
-        col: Math.floor(e.x / NODE_SIZE),
-        row: Math.floor(e.y / NODE_SIZE)
-      }))
-      .reduce(reduceIfNotPrev, []);
+    // filter mouse
+    // const hit = mousePositions
+    //   .map(e => ({
+    //     col: Math.floor(e.x / NODE_SIZE),
+    //     row: Math.floor(e.y / NODE_SIZE)
+    //   }))
+    //   .reduce(reduceIfNotPrev, []);
 
-    setHitNodes(hit);
-  }, [mousePositions]);
+    // setHitNodes(hit);
+
+    if (currentMousePosition.x && currentMousePosition.y) {
+      setHitNodes(hitNodes => {
+        return [
+          ...hitNodes,
+          {
+            col: Math.floor(currentMousePosition.x / NODE_SIZE),
+            row: Math.floor(currentMousePosition.y / NODE_SIZE)
+          }
+        ];
+      });
+    }
+  }, [mousePositions, currentMousePosition]);
 
   useEffect(() => {
-    const sm = mousePositions
-      .map(e => ({
-        col: Math.floor(e.x / NODE_SIZE),
-        row: Math.floor(e.y / NODE_SIZE)
-      }))
-      .reduce(reduceIfNotPrev, []);
-
     const segments = mousePositions
       .map((v, i, a) => {
         const s = [v, a[i + 1] || v];
-        return digitaldifferentialanalyzer(s[0].x, s[0].y, s[1].x, s[1].y);
+        return ddaAsPoint(s[0].x, s[0].y, s[1].x, s[1].y);
       })
       .reduce((acc, curr) => [...acc, ...curr], [])
       .map(v => ({
@@ -116,7 +144,7 @@ const App = () => {
         result.push(item);
       }
     }
-    // setHighlights(result);
+    setHighlights(result);
   }, [mousePositions]);
 
   return (
@@ -142,7 +170,7 @@ const App = () => {
             y={n.row * NODE_SIZE}
             width={NODE_SIZE}
             height={NODE_SIZE}
-            fill="#ff00bf"
+            fill="#5579C6"
             stroke="#EEEEF4"
           />
         ))}
@@ -153,7 +181,7 @@ const App = () => {
             y={n.row * NODE_SIZE}
             width={NODE_SIZE}
             height={NODE_SIZE}
-            fill="#7700b3"
+            fill="#c7c7db"
             stroke="#EEEEF4"
           />
         ))}
@@ -180,10 +208,10 @@ const App = () => {
           sceneFunc={(context, shape) => {
             context.beginPath();
             mousePositions.forEach(e => {
-              context.lineTo(Math.floor(e.x), Math.floor(e.y));
-              context.strokeStyle = "#51efe2";
-              context.lineWidth = 2;
+              context.lineTo(e.x, e.y);
             });
+            context.strokeStyle = "#ff4dff";
+            context.lineWidth = 1;
             context.stroke();
             context.closePath();
           }}
