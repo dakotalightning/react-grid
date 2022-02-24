@@ -2,4 +2,20 @@ body,
 html {
   margin: 0;
   padding: 0;
+  background-color: #EEEEF4;
+}
+
+.stage {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.selection {
+  padding: 5px;
+  background-color: #fff;
+  margin: 15px;
+  display: inline-block;
+  position: relative;
+  z-index: 5;
 }
