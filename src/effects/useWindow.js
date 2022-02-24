@@ -3,21 +3,32 @@ import { useEffect, useState } from "react";
 import { debounce } from "lodash";
 
 export default () => {
-  const [windowSize, setWindowSize] = useState({
-    height: window.innerHeight,
-    width: window.innerWidth
-  });
+  const isClient = typeof window === "object";
+
+  function getSize() {
+    return {
+      width: isClient ? window.innerWidth : undefined,
+      height: isClient ? window.innerHeight : undefined
+    };
+  }
+
+  const [windowSize, setWindowSize] = useState(getSize);
 
   useEffect(() => {
-    const handleWindowSize = () => {
-      setWindowSize({ height: window.innerHeight, width: window.innerWidth });
-    };
-    const debouncehHndleWindowSize = debounce(handleWindowSize, 200);
-    document.addEventListener("resize", debouncehHndleWindowSize);
-    return () => {
-      debouncehHndleWindowSize.cancel();
-      document.removeEventListener("resize", debouncehHndleWindowSize);
-    };
+    if (!isClient) {
+      return false;
+    }
+
+    const handleResize = debounce(
+      () => {
+        setWindowSize(getSize());
+      },
+      200,
+      { leading: false, trailing: true }
+    );
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return [windowSize];

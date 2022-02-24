@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { throttle, debounce } from "lodash";
+import * as R from "ramda";
 
-export default options => {
-  const events = {
-    onMouseMove: () => {},
-    onMouseDown: () => {},
-    onMouseUp: () => {},
-    onMouseOut: () => {},
-    ...options
-  };
+const defaultEvents = {
+  onMouseMove: () => {},
+  onMouseDown: () => {},
+  onMouseUp: () => {},
+  onMouseOut: () => {}
+};
+
+export default (options) => {
+  const events = Object.assign({}, defaultEvents, options);
   const [currentMousePosition, setCurrentMousePosition] = useState({});
 
   const [mousePositions, setMousePositions] = useState([]);
@@ -27,10 +28,10 @@ export default options => {
       events.onMouseDown({ button, x: clientX, y: clientY });
     };
 
-    const handleMouseMove = ({ clientX, clientY, pageX }) => {
+    const handleMouseMove = ({ clientX, clientY }) => {
       if (!isMouseDown) return;
       setMouseMoving(true);
-      setMousePositions(p => [...p, { x: clientX, y: clientY }]);
+      setMousePositions((p) => [...R.uniq(p), { x: clientX, y: clientY }]);
 
       setCurrentMousePosition({ x: clientX, y: clientY });
 
